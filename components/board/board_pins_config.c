@@ -73,7 +73,7 @@ esp_err_t get_spi_pins(spi_bus_config_t *spi_config, spi_device_interface_config
     spi_config->quadwp_io_num = -1;
     spi_config->quadhd_io_num = -1;
 
-    spi_device_interface_config->spics_io_num = SPI_PIN_NUM_CS;
+    spi_device_interface_config->spics_io_num = LCD_PIN_NUM_CS;
 
     return ESP_OK;
 }

@@ -71,9 +71,11 @@ esp_err_t lcd_init() {
         .flags = SPI_DEVICE_NO_DUMMY,
     };
     get_spi_pins(&spi_cfg, &dev_cfg);
+    
     //Initialize the SPI bus
-    int dma_chan = 1;
-    spi_bus_initialize(HSPI_HOST, &spi_cfg, dma_chan);
+    // int dma_chan = 1;
+    // spi_bus_initialize(HSPI_HOST, &spi_cfg, dma_chan);
+
     //Attach the LCD to the SPI bus
     spi_bus_add_device(HSPI_HOST, &dev_cfg, &s_spi_device);
 

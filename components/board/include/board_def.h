@@ -29,10 +29,10 @@
 #define SPI_PIN_NUM_MOSI         GPIO_NUM_23
 #define SPI_PIN_NUM_MISO         GPIO_NUM_19
 #define SPI_PIN_NUM_CLK          GPIO_NUM_18
-#define SPI_PIN_NUM_CS           GPIO_NUM_5
 
 #define LCD_PIN_NUM_DC           GPIO_NUM_21
 #define LCD_PIN_NUM_BCKL         GPIO_NUM_14
+#define LCD_PIN_NUM_CS           GPIO_NUM_5
 
 #define SDCARD_OPEN_FILE_NUM_MAX    5
 #define SDCARD_PIN_NUM_MOSI         SPI_PIN_NUM_MOSI
