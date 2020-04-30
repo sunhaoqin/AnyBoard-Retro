@@ -28,7 +28,7 @@ board_handle_t board_init(void) {
         ESP_LOGW(TAG, "The board has already been initialized!");
         return s_board;
     }
-    board = (board_handle_t) audio_calloc(1, sizeof(struct board_handle));
+    board_handle_t board = (board_handle_t) ab_calloc(1, sizeof(struct board_handle));
     AB_NULL_CHECK(TAG, board, return NULL);
     s_board = board;
 
