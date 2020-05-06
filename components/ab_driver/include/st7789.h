@@ -8,6 +8,7 @@ extern "C" {
 #include "stdint.h"
 #include "esp_err.h"
 #include "driver/spi_master.h"
+#include "lv_conf.h"
 
 /*********************
  *      INCLUDES
@@ -16,8 +17,8 @@ extern "C" {
 /*********************
  *      DEFINES
  *********************/
-#define ST7789_HOR_RES          (240)
-#define ST7789_VER_RES          (240)
+#define ST7789_HOR_RES          LV_HOR_RES_MAX
+#define ST7789_VER_RES          LV_VER_RES_MAX
 
 /**********************
  *      TYPEDEFS

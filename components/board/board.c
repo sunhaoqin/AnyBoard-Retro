@@ -18,11 +18,6 @@ static const char *TAG = "BOARD";
 
 static board_handle_t s_board = NULL;
 
-static esp_err_t input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
-    ESP_LOGI(TAG, "[ * ] input key id is %d", (int)evt->data);
-    return ESP_OK;
-}
-
 board_handle_t board_init(void) {
     if (s_board) {
         ESP_LOGW(TAG, "The board has already been initialized!");
@@ -68,7 +63,6 @@ esp_err_t board_key_init() {
     AB_NULL_CHECK(TAG, input_service, goto failed);
     ret = input_key_service_add_key(input_service, input_key_info, INPUT_KEY_NUM);
     AB_CHECK(TAG, ret == ESP_OK, goto failed, "input key service add key failed");
-    periph_service_set_callback(input_service, input_key_service_cb, NULL);
 
     periph_button_cfg_t btn_cfg = {
         .gpio_mask = (1ULL << BUTTON_SELECT_ID)

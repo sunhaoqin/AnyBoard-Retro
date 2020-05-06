@@ -65,16 +65,15 @@ esp_err_t lcd_init() {
     spi_device_interface_config_t dev_cfg = {
         .clock_speed_hz=40*1000*1000,           //Clock out at 40 MHz
         .mode=0,                                //SPI mode 0
-        .queue_size=1,
+        .queue_size=7,
         .pre_cb= spi_pre_transfer_callback,
-        .post_cb= NULL,
-        .flags = SPI_DEVICE_NO_DUMMY,
+        .flags= SPI_DEVICE_NO_DUMMY,
     };
     get_spi_pins(&spi_cfg, &dev_cfg);
     
-    //Initialize the SPI bus
-    // int dma_chan = 1;
-    // spi_bus_initialize(HSPI_HOST, &spi_cfg, dma_chan);
+    // Initialize the SPI bus
+    int dma_chan = 1;
+    spi_bus_initialize(HSPI_HOST, &spi_cfg, dma_chan);
 
     //Attach the LCD to the SPI bus
     spi_bus_add_device(HSPI_HOST, &dev_cfg, &s_spi_device);

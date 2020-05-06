@@ -13,6 +13,8 @@ static const char *TAG = "SPI_SDCARD";
 
 static int s_gpio = -1;
 
+static sdmmc_card_t *s_sdcard;
+
 static void sdmmc_card_print_info(const sdmmc_card_t *card)
 {
     ESP_LOGD(TAG, "Name: %s\n", card->cid.name);
@@ -28,28 +30,22 @@ static void sdmmc_card_print_info(const sdmmc_card_t *card)
 esp_err_t spi_sdcard_mount(const char *base_path)
 {
     sdmmc_host_t host = SDSPI_HOST_DEFAULT();
-    host.max_freq_khz = SDMMC_FREQ_HIGHSPEED;
-
-    sdspi_slot_config_t slot_config = SDSPI_SLOT_CONFIG_DEFAULT();
-    slot_config.gpio_miso = (gpio_num_t)SDCARD_PIN_NUM_MISO;
-    slot_config.gpio_mosi = (gpio_num_t)SDCARD_PIN_NUM_MOSI;
-    slot_config.gpio_sck  = (gpio_num_t)SDCARD_PIN_NUM_CLK;
-    slot_config.gpio_cs   = (gpio_num_t)SDCARD_PIN_NUM_CS;
+    sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
+    slot_config.gpio_cs = (gpio_num_t)SDCARD_PIN_NUM_CS;
 
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = false,
         .max_files = get_sdcard_open_file_num_max()
     };
 
-    sdmmc_card_t *card;
     ESP_LOGI(TAG, "Trying to mount with base path=%s", base_path);
-    esp_err_t ret = esp_vfs_fat_sdmmc_mount(base_path, &host, &slot_config, &mount_config, &card);
+    esp_err_t ret = esp_vfs_fat_sdspi_mount(base_path, &host, &slot_config, &mount_config, &s_sdcard);
 
     switch (ret) {
         case ESP_OK:
             // Card has been initialized, print its properties
-            sdmmc_card_print_info(card);
-            ESP_LOGI(TAG, "CID name %s!\n", card->cid.name);
+            sdmmc_card_print_info(s_sdcard);
+            ESP_LOGI(TAG, "CID name %s!\n", s_sdcard->cid.name);
             break;
 
         case ESP_ERR_INVALID_STATE:
@@ -69,9 +65,9 @@ esp_err_t spi_sdcard_mount(const char *base_path)
 }
 
 
-esp_err_t spi_sdcard_unmount(void)
+esp_err_t spi_sdcard_unmount(const char* base_path)
 {
-    esp_err_t ret = esp_vfs_fat_sdmmc_unmount();
+    esp_err_t ret = esp_vfs_fat_sdcard_unmount(base_path, &s_sdcard);
 
     if (ret == ESP_ERR_INVALID_STATE) {
         ESP_LOGE(TAG, "File system not mounted");

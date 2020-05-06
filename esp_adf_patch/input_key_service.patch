@@ -1,0 +1,13 @@
+diff --git a/components/input_key_service/input_key_service.c b/components/input_key_service/input_key_service.c
+index 2648f00..a00c978 100644
+--- a/components/input_key_service/input_key_service.c
++++ b/components/input_key_service/input_key_service.c
+@@ -113,7 +113,7 @@ static void input_key_service_task(void *parameters)
+             if ((int)ser_evt.data >= 0) {
+                 ser_evt.type = msg.cmd; // action
+                 ser_evt.source = (void *)msg.source_type;
+-                ser_evt.len = (int)msg.data;
++                ser_evt.len = (int)msg.data_len;
+                 periph_service_callback(input_key_handle, &ser_evt);
+             }
+         }

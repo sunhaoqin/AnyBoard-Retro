@@ -189,9 +189,7 @@ esp_err_t st7789_flush(int32_t x1, int32_t y1, int32_t x2, int32_t y2, void* col
 
 
 	while(size > ST7789_HOR_RES) {
-
 		st7789_send_data((void*)color_map, ST7789_HOR_RES * 2);
-		//vTaskDelay(10 / portTICK_PERIOD_MS);
 		size -= ST7789_HOR_RES;
 		color_map += 2 * ST7789_HOR_RES;
 	}

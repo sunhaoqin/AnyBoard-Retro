@@ -5,6 +5,10 @@
 #include <sys/unistd.h>
 #include <sys/stat.h>
 
+#include "lvgl_main.h"
+
+#include "board.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
@@ -14,11 +18,11 @@
 #include "esp_task.h"
 #include "esp_log.h"
 
-#include "lvgl.h"
-
 // #include "screen_touch.h"
 // #include "periph_screen_touch.h"
 #include "periph_lcd.h"
+#include "periph_service.h"
+#include "input_key_service.h"
 
 #include "esp_log.h"
 #include "boot_ui.h"
@@ -26,12 +30,10 @@
 static const char* TAG = "win_main";
 static const int PLUTO_GUI_STOP_BIT = BIT0;
 
-// static void lvgl_sleep();
-// static void lvgl_wakeup();
-// static void register_lvgl_pm_client();
 static void lvgl_task(void *pvParameter);
 static void lcd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p);
-static bool touch_pad_read_cb(lv_indev_drv_t * drv, lv_indev_data_t * data);
+static esp_err_t input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx);
+static bool keypad_read_cb(lv_indev_drv_t * drv, lv_indev_data_t * data);
 static void lv_log_print(lv_log_level_t level, const char * file_path, uint32_t line_number, const char * description);
 static void lcd_flash_monitor_cb(struct _disp_drv_t * disp_drv, uint32_t time, uint32_t px);
 static lv_fs_res_t pcfs_open(lv_fs_drv_t *fs_drv, FILE **file_p, const char *path, lv_fs_mode_t mode);
@@ -46,9 +48,8 @@ static SemaphoreHandle_t s_lv_mutex;
 
 static bool s_is_notify_task_stop = false;
 static EventGroupHandle_t s_event_group;
-static TaskHandle_t lvgl_task_h = NULL;
-static TaskHandle_t win_task_h = NULL;
-static lv_indev_t * gululu_kp_indev = NULL;
+static TaskHandle_t s_lvgl_task;
+static lv_group_t *s_lv_group;
 
 esp_err_t lvgl_init(){
     if (!s_lvgl_init) {
@@ -61,6 +62,8 @@ esp_err_t lvgl_init(){
         } 
 
         lv_init();
+
+        lv_theme_set_current(lv_theme_mono_init(100, NULL));
 
         lv_log_register_print_cb(lv_log_print);
 
@@ -81,14 +84,21 @@ esp_err_t lvgl_init(){
             return ESP_ERR_NO_MEM;
         }
 
-        // lv_indev_drv_t indev_drv;
-        // lv_indev_drv_init(&indev_drv);
-        // indev_drv.type = LV_INDEV_TYPE_POINTER;
-        // indev_drv.read_cb = touch_pad_read_cb;
-        // lv_indev_t * touch_indev = lv_indev_drv_register(&indev_drv);
-        // if (touch_indev == NULL) {
-        //     return ESP_ERR_NO_MEM;
-        // }
+        lv_indev_drv_t indev_drv;
+        lv_indev_drv_init(&indev_drv);
+        indev_drv.type = LV_INDEV_TYPE_KEYPAD;
+        indev_drv.read_cb = keypad_read_cb;
+        lv_indev_t *keypad_indev = lv_indev_drv_register(&indev_drv);
+        if (keypad_indev == NULL) {
+            return ESP_ERR_NO_MEM;
+        }
+        s_lv_group = lv_group_create();
+        if (s_lv_group == NULL) {
+            return ESP_ERR_NO_MEM;
+        }
+        lv_group_set_wrap(s_lv_group, true);
+        lv_indev_set_group(keypad_indev, s_lv_group);
+        periph_service_set_callback(board_get_handle()->input_service, input_key_service_cb, NULL);
 
         lv_fs_drv_t pcfs_drv;
         lv_fs_drv_init(&pcfs_drv);
@@ -102,13 +112,9 @@ esp_err_t lvgl_init(){
         pcfs_drv.size_cb = pcfs_size;
         lv_fs_drv_register(&pcfs_drv);
 
-        // lv_lodezip_init();
+        // start_boot_window();
 
-        // register_lvgl_pm_client();
-
-        start_boot_window();
-
-        if (xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 1024*5, NULL, 4, &lvgl_task_h, 1) != pdPASS) {
+        if (xTaskCreatePinnedToCore(lvgl_task, "lvgl_task", 1024*5, NULL, 4, &s_lvgl_task, 1) != pdPASS) {
             ESP_LOGE(TAG, "create lvgl task error!");
             return ESP_FAIL;
         }
@@ -127,37 +133,9 @@ void lvgl_unlock() {
     xSemaphoreGiveRecursive(s_lv_mutex);
 }
 
-// static void lvgl_sleep() {
-//     ESP_LOGI(TAG, "lvgl_sleep");
-//     s_is_notify_task_stop = true;
-
-//     EventBits_t uxBits = xEventGroupWaitBits(
-//     s_event_group, 
-//     PLUTO_GUI_STOP_BIT, 
-//     false, 
-//     true, 
-//     5 * 1000 / portTICK_PERIOD_MS);
-
-//     if ( !(uxBits & PLUTO_GUI_STOP_BIT) ) {
-//         ESP_LOGW(TAG, "wait gui task stop timeout!");
-//     }
-// }
-
-// static void lvgl_wakeup() {
-//     ESP_LOGI(TAG, "lvgl_wakeup");
-//     xEventGroupClearBits(s_event_group, PLUTO_GUI_STOP_BIT);
-// }
-
-// static void register_lvgl_pm_client(){
-//     gll_pm_client_t client = {
-//         .type = GLL_PM_CLIENT_TYPE_DISPLAY_APP,
-//         .on_wakeup = lvgl_wakeup,
-//         .on_sleep = lvgl_sleep,
-//         .on_power_off = lvgl_sleep
-//     };
-
-//     s_lvgl_pm_client_handle = gll_pm_client_register(&client);
-// }
+lv_group_t * lvgl_get_group() {
+    return s_lv_group;
+}
 
 static void lvgl_task(void *pvParameter) {
     while(true) {
@@ -184,26 +162,82 @@ static void lcd_flush_cb(lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_co
     lv_disp_flush_ready(disp_drv);
 }
 
-// static bool touch_pad_read_cb(lv_indev_drv_t * drv, lv_indev_data_t * data){
-//     static periph_screen_touch_raw_t raw_data = {
-//         .state = TOUCH_RELEASE,
-//     };
+static lv_key_t last_key = 0;
+static lv_indev_state_t last_key_state = LV_INDEV_STATE_REL;
+static esp_err_t input_key_service_cb(periph_service_handle_t handle, periph_service_event_t *evt, void *ctx) {
 
-//     bool more_to_read = periph_screen_touch_readraw(&raw_data) > 0;
+    input_key_user_id_t key_id = (input_key_user_id_t)evt->data;
 
-//     data->point.x = raw_data.x;
-//     data->point.y = raw_data.y;
+    switch(key_id) {
+        case INPUT_KEY_USER_ID_XY_1:
+            switch(evt->len) {
+                case BUTTON_X_ID:
+                    last_key = LV_KEY_LEFT;
+                    break;
+                case BUTTON_Y_ID:
+                    last_key = LV_KEY_UP;
+                    break;
+            }
+            break;
+        case INPUT_KEY_USER_ID_XY_2:
+            switch(evt->len) {
+                case BUTTON_X_ID:
+                    last_key = LV_KEY_RIGHT;
+                    break;
+                case BUTTON_Y_ID:
+                    last_key = LV_KEY_DOWN;
+                    break;
+            }
+            break;
+        case INPUT_KEY_USER_ID_SELECT:
+            if (evt->type == INPUT_KEY_SERVICE_ACTION_CLICK_RELEASE) {
+                ESP_LOGI(TAG, "input key select!");
+            }
+            break;
+        case INPUT_KEY_USER_ID_START:
+            if (evt->type == INPUT_KEY_SERVICE_ACTION_CLICK_RELEASE) {
+                ESP_LOGI(TAG, "input key start!");
+            }
+            break;
+        case INPUT_KEY_USER_ID_A:
+            last_key = LV_KEY_ENTER;
+            break;
+        case INPUT_KEY_USER_ID_B:
+            last_key = LV_KEY_ESC;
+            break;
+        case INPUT_KEY_USER_ID_MENU:
+            if (evt->type == INPUT_KEY_SERVICE_ACTION_CLICK_RELEASE) {
+                ESP_LOGI(TAG, "input key menu!");
+            }
+            break;
+        case INPUT_KEY_USER_ID_VOLUME:
+            if (evt->type == INPUT_KEY_SERVICE_ACTION_CLICK_RELEASE) {
+                ESP_LOGI(TAG, "input key volume!");
+            }
+            break;
+        default:
+            return ESP_OK;
+    }
 
-//     if(raw_data.state == TOUCH_PRESSED || raw_data.state == TOUCH_CONTACT) {
-//         data->state = LV_INDEV_STATE_PR;
-//     }
-//     else {
-//         data->state = LV_INDEV_STATE_REL;
-//     }
+    switch(evt->type) {
+        case INPUT_KEY_SERVICE_ACTION_CLICK:
+        case INPUT_KEY_SERVICE_ACTION_PRESS:
+            last_key_state = LV_INDEV_STATE_PR;
+            break;
+        case INPUT_KEY_SERVICE_ACTION_CLICK_RELEASE:
+        case INPUT_KEY_SERVICE_ACTION_PRESS_RELEASE:
+            last_key_state = LV_INDEV_STATE_REL;
+            break;
+    }
 
-//     return more_to_read;
-    
-// }
+    return ESP_OK;
+}
+
+static bool keypad_read_cb(lv_indev_drv_t * drv, lv_indev_data_t * data) {
+    data->key = last_key;
+    data->state = last_key_state;
+    return false;
+}
 
 static void lv_log_print(lv_log_level_t level, const char * file_path, uint32_t line_number, const char * description) {
     switch(level) {

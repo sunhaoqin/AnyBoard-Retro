@@ -43,12 +43,12 @@
 #define SDCARD_PIN_NUM_CS           GPIO_NUM_22
 #define SDCARD_INTR_GPIO            -1
 
-#define BUTTON_X_ID ADC1_CHANNEL_6
-#define BUTTON_Y_ID ADC1_CHANNEL_7
+#define BUTTON_X_ID ADC1_CHANNEL_7
+#define BUTTON_Y_ID ADC1_CHANNEL_6
 #define BUTTON_SELECT_ID GPIO_NUM_27
 #define BUTTON_START_ID  GPIO_NUM_39
-#define BUTTON_A_ID GPIO_NUM_32
-#define BUTTON_B_ID GPIO_NUM_33
+#define BUTTON_A_ID GPIO_NUM_33
+#define BUTTON_B_ID GPIO_NUM_32
 #define BUTTON_MENU_ID GPIO_NUM_13
 #define BUTTON_VOLUME_ID GPIO_NUM_0
 
@@ -81,46 +81,57 @@ extern audio_hal_func_t AUDIO_CODEC_ES8388_DEFAULT_HANDLE;
 
 #define INPUT_KEY_NUM     8
 
+typedef enum {
+    INPUT_KEY_USER_ID_XY_1                      = 0x01,
+    INPUT_KEY_USER_ID_XY_2                      = 0x02,
+    INPUT_KEY_USER_ID_SELECT                    = 0x03,
+    INPUT_KEY_USER_ID_START                     = 0x04,
+    INPUT_KEY_USER_ID_A                         = 0x05,
+    INPUT_KEY_USER_ID_B                         = 0x06,
+    INPUT_KEY_USER_ID_MENU                      = 0x07,
+    INPUT_KEY_USER_ID_VOLUME                    = 0x08,
+} input_key_user_id_t;
+
 #define INPUT_KEY_DEFAULT_INFO() {                       \
     {                                                    \
         .type = PERIPH_ID_ADC_BTN,                       \
-        .user_id = 1,                \
-        .act_id = 0,                           \
+        .user_id = INPUT_KEY_USER_ID_XY_1,               \
+        .act_id = 1,                                     \
     },                                                   \
     {                                                    \
         .type = PERIPH_ID_ADC_BTN,                       \
-        .user_id = 2,               \
-        .act_id = 1,                           \
+        .user_id = INPUT_KEY_USER_ID_XY_2,               \
+        .act_id = 0,                                     \
     },                                                   \
     {                                                    \
         .type = PERIPH_ID_BUTTON,                        \
-        .user_id = 3,                \
+        .user_id = INPUT_KEY_USER_ID_SELECT,             \
         .act_id = BUTTON_SELECT_ID,                      \
     },                                                   \
     {                                                    \
         .type = PERIPH_ID_BUTTON,                        \
-        .user_id = 4,               \
+        .user_id = INPUT_KEY_USER_ID_START,              \
         .act_id = BUTTON_START_ID,                       \
     },                                                   \
     {                                                    \
         .type = PERIPH_ID_BUTTON,                        \
-        .user_id = 5,              \
+        .user_id = INPUT_KEY_USER_ID_A,                  \
         .act_id = BUTTON_A_ID,                           \
     },                                                   \
     {                                                    \
         .type = PERIPH_ID_BUTTON,                        \
-        .user_id = 6,            \
+        .user_id = INPUT_KEY_USER_ID_B,                  \
         .act_id = BUTTON_B_ID,                           \
     },                                                   \
     {                                                    \
         .type = PERIPH_ID_BUTTON,                        \
-        .user_id = 7,            \
+        .user_id = INPUT_KEY_USER_ID_MENU,               \
         .act_id = BUTTON_MENU_ID,                        \
     },                                                   \
     {                                                    \
         .type = PERIPH_ID_BUTTON,                        \
-        .user_id = 8,            \
-        .act_id = BUTTON_VOLUME_ID,                        \
+        .user_id = INPUT_KEY_USER_ID_VOLUME,             \
+        .act_id = BUTTON_VOLUME_ID,                      \
     },                                                   \
 }
 
