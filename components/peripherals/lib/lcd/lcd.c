@@ -81,8 +81,8 @@ esp_err_t lcd_init() {
 	//Initialize the LCD driver
 	st7789_init(s_spi_device);
 
-	backlight_init();
-    lcd_set_brightness(100);
+	// backlight_init();
+ //    lcd_set_brightness(100);
     	
     return ESP_OK;
 }

@@ -1,7 +1,7 @@
 #ifndef _PERIPH_LCD_H__
 #define _PERIPH_LCD_H__
 
-#include "stdint.h"
+#include <stdint.h>
 #include "esp_peripherals.h"
 #include "esp_err.h"
 

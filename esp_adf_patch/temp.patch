@@ -1,0 +1,26 @@
+diff --git a/components/esp_peripherals/CMakeLists.txt b/components/esp_peripherals/CMakeLists.txt
+index 7cc7f3c..ae19426 100644
+--- a/components/esp_peripherals/CMakeLists.txt
++++ b/components/esp_peripherals/CMakeLists.txt
+@@ -25,7 +25,7 @@ ENDIF ( NOT (CONFIG_IDF_TARGET MATCHES "esp32s2"))
+ 
+ 
+ # Edit following two lines to set component requirements (see docs)
+-set(COMPONENT_REQUIRES driver  audio_hal esp_adc_cal audio_sal fatfs console audio_pipeline audio_board spiffs display_service esp_dispatcher bt mbedtls)
++set(COMPONENT_REQUIRES driver  audio_hal esp_adc_cal audio_sal fatfs console audio_pipeline board spiffs display_service esp_dispatcher bt mbedtls)
+ set(COMPONENT_PRIV_REQUIRES )
+ IF ( NOT (CONFIG_IDF_TARGET MATCHES "esp32s2"))
+ set(COMPONENT_SRCS ./esp_peripherals.c
+diff --git a/components/input_key_service/input_key_service.c b/components/input_key_service/input_key_service.c
+index 2648f00..46d8ba1 100644
+--- a/components/input_key_service/input_key_service.c
++++ b/components/input_key_service/input_key_service.c
+@@ -113,7 +113,7 @@ static void input_key_service_task(void *parameters)
+             if ((int)ser_evt.data >= 0) {
+                 ser_evt.type = msg.cmd; // action
+                 ser_evt.source = (void *)msg.source_type;
+-                ser_evt.len = (int)msg.data;
++                ser_evt.len = msg.data_len;
+                 periph_service_callback(input_key_handle, &ser_evt);
+             }
+         }

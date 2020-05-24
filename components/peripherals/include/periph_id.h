@@ -1,7 +1,7 @@
 #ifndef __PERIPH_ID_H__
 #define __PERIPH_ID_H__
 
-#include "audio_common.h"
+#include "esp_peripherals.h"
 
 //extend the esp periphrals id. should be refactory when adf pheriph componnets updated
 enum {

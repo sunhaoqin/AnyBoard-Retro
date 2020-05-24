@@ -26,7 +26,7 @@
 #define _AB_SDCARD_H_
 
 #include <stdbool.h>
-#include "audio_error.h"
+#include "esp_err.h"
 
 #ifdef __cplusplus
 extern "C" {

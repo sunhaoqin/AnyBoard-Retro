@@ -44,6 +44,7 @@ typedef struct {
     char *root;
     int card_detect_pin;
     bool is_mounted;
+    long long last_detect_time;
 } periph_spi_sdcard_t;
 
 static esp_err_t periph_sdcard_mount(esp_periph_handle_t periph)
@@ -54,7 +55,7 @@ static esp_err_t periph_sdcard_mount(esp_periph_handle_t periph)
 
     int ret = spi_sdcard_mount(sdcard->root);
     if (ret == ESP_OK) {
-        ESP_LOGD(TAG, "Mount SDCARD success");
+        ESP_LOGI(TAG, "Mount SDCARD success");
         sdcard->is_mounted = true;
         return esp_periph_send_event(periph, SDCARD_STATUS_MOUNTED, NULL, 0);
     } else if (ret == ESP_ERR_INVALID_STATE) {
@@ -137,4 +138,11 @@ esp_periph_handle_t periph_spi_sdcard_init(periph_sdcard_cfg_t *sdcard_cfg)
     esp_periph_set_data(periph, sdcard);
     esp_periph_set_function(periph, _sdcard_init, NULL, _sdcard_destroy);
     return periph;
+}
+
+bool periph_spi_sdcard_is_mounted(esp_periph_handle_t periph) {
+    VALIDATE_SDCARD(periph, ESP_FAIL);
+    periph_spi_sdcard_t *sdcard = esp_periph_get_data(periph);
+    ESP_LOGI(TAG, "sdcard is_mounted = %d", sdcard->is_mounted);
+    return sdcard->is_mounted;
 }

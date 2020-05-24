@@ -126,7 +126,7 @@ esp_err_t board_sdcard_init() {
     AB_NULL_CHECK(TAG, sdcard_handle, return ESP_ERR_NO_MEM);
 
     esp_err_t ret = esp_periph_start(s_board->periph_set, sdcard_handle);
-    while (!periph_sdcard_is_mounted(sdcard_handle)) {
+    while (!periph_spi_sdcard_is_mounted(sdcard_handle)) {
         vTaskDelay(500 / portTICK_PERIOD_MS);
     }
     return ret;

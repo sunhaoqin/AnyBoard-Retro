@@ -35,7 +35,7 @@ esp_err_t spi_sdcard_mount(const char *base_path)
 
     esp_vfs_fat_sdmmc_mount_config_t mount_config = {
         .format_if_mount_failed = false,
-        .max_files = get_sdcard_open_file_num_max()
+        .max_files = get_sdcard_open_file_num_max(),
     };
 
     ESP_LOGI(TAG, "Trying to mount with base path=%s", base_path);

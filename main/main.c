@@ -28,7 +28,7 @@ static void flash_rom(char *filename) {
     size_t filename_len = strlen(filename);
 
     char *file_path = (char *)ab_calloc(root_path_len + filename_len + 1, sizeof(char));
-    strncpy(file_path, root_path, root_path_len);
+    strcpy(file_path, root_path);
     strncat(file_path, filename, filename_len);
 
     FILE* file = fopen(file_path, "rb");
@@ -173,7 +173,7 @@ void app_main(void) {
     lvgl_unlock();
 
     char *arr_filename[20] = {0};
-    esp_err_t ret = read_dir_filename("/sdcard/", "bin", arr_filename, 20);
+    esp_err_t ret = read_dir_filename("/sdcard", "bin", arr_filename, 20);
 
     if (ret == ESP_OK) {
         for (int i = 0; i < 20; i++) {
@@ -191,8 +191,6 @@ void app_main(void) {
     }else {
         ESP_LOGE(TAG, "read_dir_filename error! %s", esp_err_to_name(ret));
     }
-
-    // flash_rom();
 
     while(true) {        
         vTaskDelay(1000 / portTICK_RATE_MS);

@@ -22,10 +22,11 @@
  *
  */
 
-#ifndef _AUDIO_BOARD_DEFINITION_H_
-#define _AUDIO_BOARD_DEFINITION_H_
+#ifndef _BOARD_DEFINITION_H_
+#define _BOARD_DEFINITION_H_
 
 #include "audio_hal.h"
+#include "driver/touch_pad.h"
 
 #define SPI_CLOCK_RATE           40000000
 #define SPI_PIN_NUM_MOSI         GPIO_NUM_23
